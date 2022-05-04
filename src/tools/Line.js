@@ -22,9 +22,9 @@ export default class Line extends Tool {
     }
     mouseMoveHandler(e) {
         if(this.mouseDown) {
-            this.currentX = e.pageX - e.target.offsetLeft;
-            this.currentY = e.pageY - e.target.offsetTop;
-            this.draw(this.currentX, this.currentY);
+            const currentX = e.pageX - e.target.offsetLeft;
+            const currentY = e.pageY - e.target.offsetTop;
+            this.draw(currentX, currentY);
         }
     }
     draw(x, y) {

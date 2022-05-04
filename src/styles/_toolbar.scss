@@ -56,4 +56,8 @@
 .settingbar {
     @extend %bar;
     top: $toolbar-height;
+
+    &__label {
+        margin-left: 10px;
+    }
 }
