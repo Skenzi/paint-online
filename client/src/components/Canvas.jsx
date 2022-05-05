@@ -14,7 +14,6 @@ const Canvas = observer(() => {
 
     useEffect(() => {
         canvasState.setCanvas(canvasRef.current);
-        toolState.setTool(new Brush(canvasRef.current))
     }, [])
 
     useEffect(() => {
@@ -22,6 +21,7 @@ const Canvas = observer(() => {
             const wss = new WebSocket('ws://localhost:5000/');
             canvasState.setSessionId(params.id);
             canvasState.setSocket(wss);
+            toolState.setTool(new Brush(canvasRef.current, wss, params.id))
             wss.onopen = () => {
                 wss.send(JSON.stringify({
                     id: params.id,
@@ -36,13 +36,7 @@ const Canvas = observer(() => {
                         console.log(`Пользователь ${msg.username} подключился`)
                         break;
                     case 'draw':
-                        const ctx = canvasState.canvas.getContext('2d');
-                        const image = new Image();
-                        image.src = msg.canvasUrl;
-                        image.onload = () => {
-                            ctx.clearRect(0, 0, canvasState.canvas.width, canvasState.canvas.height);
-                            ctx.drawImage(image, 0, 0, canvasState.canvas.width, canvasState.canvas.height);
-                        }
+                        drawHandler(msg.figure);
                         break;
                     default:
                         console.log('I dont know')
@@ -52,7 +46,15 @@ const Canvas = observer(() => {
     }, [canvasState.username])
 
     const drawHandler = (msg) => {
-
+        const ctx = canvasRef.current.getContext('2d');
+        switch(msg.type) {
+            case 'brush':
+                Brush.draw(ctx, msg.x, msg.y)
+                break;
+            case 'finish':
+                ctx.beginPath();
+                break;
+        }
     }
 
     const mouseDownHandler = () => {

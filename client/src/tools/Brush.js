@@ -1,9 +1,8 @@
-import canvasState from "../store/canvasState";
 import Tool from "./Tool";
 
 export default class Brush extends Tool {
-    constructor(canvas) {
-        super(canvas);
+    constructor(canvas, socket, sessionId) {
+        super(canvas, socket, sessionId);
         this.listen();
     }
 
@@ -16,6 +15,13 @@ export default class Brush extends Tool {
 
     mouseUpHandler(e) {
         this.mouseDown = false;
+        this.socket.send(JSON.stringify({
+            id: this.sessionId,
+            event: 'draw',
+            figure: {
+                type: 'finish',
+            }
+        }));
     }
     mouseDownHandler(e) {
         this.mouseDown = true;
@@ -24,17 +30,21 @@ export default class Brush extends Tool {
     }
     mouseMoveHandler(e) {
         if (this.mouseDown) {
-            this.draw(e.pageX - e.target.offsetLeft, e.pageY - e.target.offsetTop);
+            // this.draw(e.pageX - e.target.offsetLeft, e.pageY - e.target.offsetTop);
+            this.socket.send(JSON.stringify({
+                id: this.sessionId,
+                event: 'draw',
+                figure: {
+                    x: e.pageX - e.target.offsetLeft,
+                    y: e.pageY - e.target.offsetTop,
+                    type: 'brush',
+                }
+            }));
         }
     }
 
-    draw(x, y) {
-        this.ctx.lineTo(x, y);
-        this.ctx.stroke();
-        canvasState.socket.send(JSON.stringify({
-            id: canvasState.sessionId,
-            canvasUrl: this.canvas.toDataURL(),
-            event: 'draw',
-        }));
+    static draw(ctx, x, y) {
+        ctx.lineTo(x, y);
+        ctx.stroke();
     }
 }

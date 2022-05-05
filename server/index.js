@@ -24,6 +24,7 @@ const broadcastHandler = (ws, msg) => {
 }
 
 const broadcastConnection = (ws, msg) => {
+    console.log(msg)
     aWss.clients.forEach((client) => {
         if(client.id === msg.id) {
             console.log(msg)
