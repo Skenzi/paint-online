@@ -1,10 +1,11 @@
 import React, { useEffect, useRef, useState } from "react";
+import { useParams } from "react-router-dom";
 import { observer } from "mobx-react-lite";
 import { Modal, Button } from 'react-bootstrap';
 import canvasState from "../store/canvasState";
 import toolState from "../store/toolState";
 import Brush from '../tools/Brush';
-import { useParams } from "react-router-dom";
+import Rect from "../tools/Rect";
 
 const Canvas = observer(() => {
     const canvasRef = useRef();
@@ -49,7 +50,10 @@ const Canvas = observer(() => {
         const ctx = canvasRef.current.getContext('2d');
         switch(msg.type) {
             case 'brush':
-                Brush.draw(ctx, msg.x, msg.y)
+                Brush.draw(ctx, msg.x, msg.y);
+                break;
+            case 'rect':
+                Rect.staticDraw(ctx, msg.x, msg.y, msg.width, msg.height);
                 break;
             case 'finish':
                 ctx.beginPath();
