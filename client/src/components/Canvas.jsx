@@ -1,23 +1,84 @@
-import React, { useEffect, useRef } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { observer } from "mobx-react-lite";
+import { Modal, Button } from 'react-bootstrap';
 import canvasState from "../store/canvasState";
 import toolState from "../store/toolState";
 import Brush from '../tools/Brush';
+import { useParams } from "react-router-dom";
 
 const Canvas = observer(() => {
     const canvasRef = useRef();
+    const [show, setShow] = useState(true);
+    const [name, setName] =useState('');
+    const params = useParams();
 
     useEffect(() => {
         canvasState.setCanvas(canvasRef.current);
         toolState.setTool(new Brush(canvasRef.current))
     }, [])
 
+    useEffect(() => {
+        if(canvasState.username) {
+            const wss = new WebSocket('ws://localhost:5000/');
+            canvasState.setSessionId(params.id);
+            canvasState.setSocket(wss);
+            wss.onopen = () => {
+                wss.send(JSON.stringify({
+                    id: params.id,
+                    username: canvasState.username,
+                    event: 'connection',
+                }));
+            }
+            wss.onmessage = (event) => {
+                const msg = JSON.parse(event.data);
+                switch(msg.event) {
+                    case 'connection':
+                        console.log(`Пользователь ${msg.username} подключился`)
+                        break;
+                    case 'draw':
+                        const ctx = canvasState.canvas.getContext('2d');
+                        const image = new Image();
+                        image.src = msg.canvasUrl;
+                        image.onload = () => {
+                            ctx.clearRect(0, 0, canvasState.canvas.width, canvasState.canvas.height);
+                            ctx.drawImage(image, 0, 0, canvasState.canvas.width, canvasState.canvas.height);
+                        }
+                        break;
+                    default:
+                        console.log('I dont know')
+                }
+            }
+        }
+    }, [canvasState.username])
+
+    const drawHandler = (msg) => {
+
+    }
+
     const mouseDownHandler = () => {
         canvasState.pushToUndo(canvasRef.current.toDataURL())
     }
 
+    const connectionHandler = () => {
+        canvasState.setUsername(name);
+        setShow(false);
+    }
+
     return (
         <div className="canvas">
+            <Modal show={show} onHide={() => setShow(false)}>
+        <Modal.Header closeButton>
+          <Modal.Title>Введите свое имя</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+            <input type="text" value={name} onChange={(ev) => setName(ev.target.value)} />
+        </Modal.Body>
+        <Modal.Footer>
+          <Button variant="primary" onClick={connectionHandler}>
+            Подтвердить
+          </Button>
+        </Modal.Footer>
+      </Modal>
             <canvas ref={canvasRef} onMouseDown={() => mouseDownHandler()} width={600} height={400}></canvas>
         </div>
     )

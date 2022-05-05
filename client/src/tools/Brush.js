@@ -1,3 +1,4 @@
+import canvasState from "../store/canvasState";
 import Tool from "./Tool";
 
 export default class Brush extends Tool {
@@ -30,5 +31,10 @@ export default class Brush extends Tool {
     draw(x, y) {
         this.ctx.lineTo(x, y);
         this.ctx.stroke();
+        canvasState.socket.send(JSON.stringify({
+            id: canvasState.sessionId,
+            canvasUrl: this.canvas.toDataURL(),
+            event: 'draw',
+        }));
     }
 }
