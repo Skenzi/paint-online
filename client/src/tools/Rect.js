@@ -58,9 +58,9 @@ export default class Rect extends Tool {
     }
 
     static staticDraw(ctx, x, y, w, h) {
-        ctx.beginPath();
         ctx.rect(x, y, w, h);
         ctx.fill();
         ctx.stroke();
+        ctx.beginPath();
     }
 }

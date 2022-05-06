@@ -1,17 +1,27 @@
 import Tool from "./Tool";
 export default class Line extends Tool {
-    constructor(canvas) {
-        super(canvas);
+    constructor(canvas, socket, sessionId) {
+        super(canvas, socket, sessionId);
         this.listen();
     }
     listen() {
-        console.log('listen')
         this.canvas.onmouseup = this.mouseUpHandler.bind(this);
         this.canvas.onmousedown = this.mouseDownHandler.bind(this);
         this.canvas.onmousemove = this.mouseMoveHandler.bind(this);
     }
     mouseUpHandler(e) {
         this.mouseDown = false;
+        this.socket.send(JSON.stringify({
+            event: 'draw',
+            id: this.sessionId,
+            figure: {
+                type: 'line',
+                startX: this.startX,
+                startY: this.startY,
+                endX: this.currentX,
+                endY: this.currentY,
+            }
+        }))
     }
     mouseDownHandler(e) {
         this.mouseDown = true;
@@ -22,9 +32,9 @@ export default class Line extends Tool {
     }
     mouseMoveHandler(e) {
         if(this.mouseDown) {
-            const currentX = e.pageX - e.target.offsetLeft;
-            const currentY = e.pageY - e.target.offsetTop;
-            this.draw(currentX, currentY);
+            this.currentX = e.pageX - e.target.offsetLeft;
+            this.currentY = e.pageY - e.target.offsetTop;
+            this.draw(this.currentX, this.currentY);
         }
     }
     draw(x, y) {
@@ -38,5 +48,11 @@ export default class Line extends Tool {
             this.ctx.lineTo(x, y);
             this.ctx.stroke();
         }
+    }
+    static staticDraw(ctx, startX, startY, endX, endY) {
+        ctx.moveTo(startX, startY);
+        ctx.lineTo(endX, endY);
+        ctx.stroke();
+        ctx.beginPath();
     }
 }

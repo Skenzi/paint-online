@@ -1,8 +1,8 @@
 import Tool from "./Tool";
 
 export default class Circle extends Tool {
-    constructor(canvas) {
-        super(canvas);
+    constructor(canvas, socket, sessionId) {
+        super(canvas, socket, sessionId);
         this.listen();
     }
     listen() {
@@ -13,6 +13,18 @@ export default class Circle extends Tool {
     }
     mouseUpHandler(e) {
         this.mouseDown = false;
+        this.socket.send(JSON.stringify({
+            event: 'draw',
+            id: this.sessionId,
+            figure: {
+                type: 'circle',
+                x: this.startX,
+                y: this.startY,
+                radius: this.radius,
+                startAngle: this.startAngle,
+                endAngle: this.endAngle,
+            }
+        }))
     }
     mouseDownHandler(e) {
         this.mouseDown = true;
@@ -24,10 +36,10 @@ export default class Circle extends Tool {
     mouseMoveHandler(e) {
         if(this.mouseDown) {
             const currentX = e.pageX - e.target.offsetLeft;
-            const radius = Math.abs(currentX - this.startX);
-            const startAngle = 0 * Math.PI;
-            const endAngle = 2 * Math.PI;
-            this.draw(this.startX, this.startY, radius, startAngle, endAngle);
+            this.radius = Math.abs(currentX - this.startX);
+            this.startAngle = 0 * Math.PI;
+            this.endAngle = 2 * Math.PI;
+            this.draw(this.startX, this.startY, this.radius, this.startAngle, this.endAngle);
         }
     }
     draw(x, y, r, startAngle, endAngle) {
@@ -41,5 +53,11 @@ export default class Circle extends Tool {
             this.ctx.fill();
             this.ctx.stroke();
         }
+    }
+    static staticDraw(ctx, x, y, r, startAngle, endAngle) {
+        ctx.arc(x, y, r, startAngle, endAngle);
+        ctx.fill();
+        ctx.stroke();
+        ctx.beginPath();
     }
 }

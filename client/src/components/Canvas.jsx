@@ -6,11 +6,14 @@ import canvasState from "../store/canvasState";
 import toolState from "../store/toolState";
 import Brush from '../tools/Brush';
 import Rect from "../tools/Rect";
+import Circle from "../tools/Circle";
+import Eraser from "../tools/Eraser";
+import Line from "../tools/Line";
 
 const Canvas = observer(() => {
     const canvasRef = useRef();
     const [show, setShow] = useState(true);
-    const [name, setName] =useState('');
+    const [name, setName] = useState('');
     const params = useParams();
 
     useEffect(() => {
@@ -55,9 +58,21 @@ const Canvas = observer(() => {
             case 'rect':
                 Rect.staticDraw(ctx, msg.x, msg.y, msg.width, msg.height);
                 break;
+            case 'circle':
+                Circle.staticDraw(ctx, msg.x, msg.y, msg.radius, msg.startAngle, msg.endAngle);
+                break;
+            case 'eraser':
+                Eraser.draw(ctx, msg.x, msg.y);
+                break;
+            case 'line':
+                console.log(msg)
+                Line.staticDraw(ctx, msg.startX, msg.startY, msg.endX, msg.endY);
+                break;
             case 'finish':
                 ctx.beginPath();
                 break;
+            default:
+                console.log('error')
         }
     }
 

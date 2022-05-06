@@ -7,7 +7,6 @@ export default class Brush extends Tool {
     }
 
     listen() {
-        console.log('listen')
         this.canvas.onmouseup = this.mouseUpHandler.bind(this);
         this.canvas.onmousedown = this.mouseDownHandler.bind(this);
         this.canvas.onmousemove = this.mouseMoveHandler.bind(this);
