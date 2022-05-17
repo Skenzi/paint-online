@@ -37,7 +37,6 @@ const Canvas = observer(() => {
             wss.onmessage = (event) => {
                 const msg = JSON.parse(event.data);
                 const ctx = canvasRef.current.getContext('2d');
-                console.log(msg)
                 switch(msg.event) {
                     case 'connection':
                         axios.get('http://localhost:5000/imageConnection', {
