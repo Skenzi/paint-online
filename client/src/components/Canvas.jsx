@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from "react";
 import { useParams } from "react-router-dom";
 import { observer } from "mobx-react-lite";
 import { Modal, Button } from 'react-bootstrap';
+import axios from 'axios';
 import canvasState from "../store/canvasState";
 import toolState from "../store/toolState";
 import Brush from '../tools/Brush';
@@ -35,12 +36,35 @@ const Canvas = observer(() => {
             }
             wss.onmessage = (event) => {
                 const msg = JSON.parse(event.data);
+                const ctx = canvasRef.current.getContext('2d');
+                console.log(msg)
                 switch(msg.event) {
                     case 'connection':
+                        axios.get('http://localhost:5000/imageConnection', {
+                            params: {
+                                sessionId: canvasState.sessionId,
+                            }
+                        })
+                          .then(({data}) => {
+                            const img = new Image();
+                            img.src = data;
+                            img.onload = () => {
+                                ctx.clearRect(0, 0, canvasRef.current.width, canvasRef.current.height);
+                                ctx.drawImage(img, 0, 0, canvasRef.current.width, canvasRef.current.height);
+                            }
+                          })
                         console.log(`Пользователь ${msg.username} подключился`)
                         break;
                     case 'draw':
                         drawHandler(msg.figure);
+                        break;
+                    case 'drawImage':
+                        const img = new Image();
+                        img.src = msg.dataUrl;
+                        img.onload = () => {
+                            ctx.clearRect(0, 0, canvasRef.current.width, canvasRef.current.height);
+                            ctx.drawImage(img, 0, 0, canvasRef.current.width, canvasRef.current.height);
+                        }
                         break;
                     default:
                         console.log('I dont know')
@@ -65,8 +89,19 @@ const Canvas = observer(() => {
                 Eraser.draw(ctx, msg.x, msg.y);
                 break;
             case 'line':
-                console.log(msg)
                 Line.staticDraw(ctx, msg.startX, msg.startY, msg.endX, msg.endY);
+                break;
+            case 'fillColor':
+                ctx.fillStyle = msg.color;
+                break;
+            case 'strokeColor':
+                ctx.strokeStyle = msg.color;
+                break;
+            case 'lineWidth':
+                ctx.lineWidth = msg.width;
+                break;
+            case 'drawImage':
+                ctx.lineWidth = msg.width;
                 break;
             case 'finish':
                 ctx.beginPath();
@@ -77,7 +112,13 @@ const Canvas = observer(() => {
     }
 
     const mouseDownHandler = () => {
-        canvasState.pushToUndo(canvasRef.current.toDataURL())
+        const dataUrl = canvasRef.current.toDataURL();
+        canvasState.pushToUndo(dataUrl)
+    }
+
+    const mouseUpHandler = () => {
+        const dataUrl = canvasRef.current.toDataURL();
+        axios.post('http://localhost:5000/image', { dataUrl, sessionId: canvasState.sessionId });
     }
 
     const connectionHandler = () => {
@@ -100,7 +141,7 @@ const Canvas = observer(() => {
           </Button>
         </Modal.Footer>
       </Modal>
-            <canvas ref={canvasRef} onMouseDown={() => mouseDownHandler()} width={600} height={400}></canvas>
+            <canvas ref={canvasRef} onMouseUp={() => mouseUpHandler()} onMouseDown={() => mouseDownHandler()} width={600} height={400}></canvas>
         </div>
     )
 });

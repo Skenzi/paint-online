@@ -37,10 +37,13 @@ class CanvasState {
 
     undo() {
         const ctx = this.canvas.getContext('2d');
-        console.log(this.undoList)
         if(this.undoList.length) {
             const dataUrl = this.undoList.pop();
-            console.log(dataUrl)
+            this.socket.send(JSON.stringify({
+                event: 'drawImage',
+                id: this.sessionId,
+                dataUrl,
+            }))
             this.pushToRedo(this.canvas.toDataURL());
             const img = new Image();
             img.src = dataUrl;
@@ -56,6 +59,11 @@ class CanvasState {
         const ctx = this.canvas.getContext('2d');
         if(this.redoList.length) {
             const dataUrl = this.redoList.pop();
+            this.socket.send(JSON.stringify({
+                event: 'drawImage',
+                id: this.sessionId,
+                dataUrl,
+            }))
             this.pushToUndo(this.canvas.toDataURL());
             const img = new Image();
             img.src = dataUrl;

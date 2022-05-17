@@ -14,14 +14,35 @@ export default class Tool {
     }
 
     set fillColor(color) {
-        this.ctx.fillStyle = color;
+        this.socket.send(JSON.stringify({
+            event: 'draw',
+            id: this.sessionId,
+            figure: {
+                type: 'fillColor',
+                color,
+            }
+        }))
     }
 
     set strokeColor(color) {
-        this.ctx.strokeStyle = color;
+        this.socket.send(JSON.stringify({
+            event: 'draw',
+            id: this.sessionId,
+            figure: {
+                type: 'strokeColor',
+                color,
+            }
+        }))
     }
 
     set lineWidth(width) {
-        this.ctx.lineWidth = width;
+        this.socket.send(JSON.stringify({
+            event: 'draw',
+            id: this.sessionId,
+            figure: {
+                type: 'lineWidth',
+                width,
+            }
+        }))
     }
 }
